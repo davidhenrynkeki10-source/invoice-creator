@@ -2944,20 +2944,30 @@ nav {
 }
 
 @media (max-width: 700px) {
+  .app {
+    display: block;
+    min-height: 100vh;
+  }
+
   .mobile-menu-button {
     display: flex;
     position: fixed;
-    top: 18px;
-    left: 18px;
-    z-index: 1001;
+    top: 16px;
+    left: 16px;
+    z-index: 2000;
+
     width: 44px;
     height: 44px;
+
     align-items: center;
     justify-content: center;
+
     border: none;
     border-radius: 12px;
+
     background: #ffffff;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+
     font-size: 22px;
     cursor: pointer;
   }
@@ -2966,9 +2976,13 @@ nav {
     position: fixed;
     top: 0;
     left: -280px;
-    width: 260px;
+
+    width: 245px;
     height: 100vh;
-    z-index: 1000;
+    min-height: 100vh;
+
+    z-index: 1999;
+
     transition: left 0.25s ease;
   }
 
@@ -2978,16 +2992,23 @@ nav {
 
   .mobile-menu-close {
     display: flex;
+
     position: absolute;
     top: 18px;
-    right: 18px;
+    right: 16px;
+
     width: 36px;
     height: 36px;
+
     align-items: center;
     justify-content: center;
+
     border: none;
     border-radius: 50%;
-    background: #f4f4f4;
+
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+
     font-size: 24px;
     cursor: pointer;
   }
