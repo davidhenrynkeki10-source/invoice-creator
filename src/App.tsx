@@ -150,7 +150,7 @@ const [invoiceHistory, setInvoiceHistory] = useState<SavedInvoice[]>(() => {
     setError("");
 
     const response = await fetch(
-      "http://localhost:5000/api/generate-invoice",
+      "https://invoice-creator-l0ex.onrender.com/api/generate-invoice",
       {
         method: "POST",
         headers: {
