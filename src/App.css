@@ -3008,3 +3008,14 @@ nav {
     line-height: 1;
   }
 }
+@media (max-width: 700px) {
+  html,
+  body {
+    scrollbar-width: none;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none;
+  }
+}
