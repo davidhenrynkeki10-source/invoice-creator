@@ -47,7 +47,7 @@ function App() {
   const [settingsModal, setSettingsModal] = useState<
   "terms" | "privacy" | null
 >(null);
-
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -1312,11 +1312,29 @@ const deleteInvoice = (index: number) => {
 
   return (
     <div className="app">
-      <aside className="sidebar">
+      <button
+  className="mobile-menu-button"
+  onClick={() => setMobileMenuOpen(true)}
+>
+  ☰
+</button>
+       <aside
+  className={`sidebar ${
+    mobileMenuOpen ? "mobile-open" : ""
+  }`}
+>
         <div className="logo">
           <span className="logo-mark">✦</span>
           <span>Invoice Creator</span>
         </div>
+        {mobileMenuOpen && (
+  <button
+    className="mobile-menu-close"
+    onClick={() => setMobileMenuOpen(false)}
+  >
+    ×
+  </button>
+)}
 
         <nav>
           <button className="nav-item active">
