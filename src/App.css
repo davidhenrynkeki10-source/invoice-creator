@@ -2935,81 +2935,76 @@ nav {
   background: #e9e9e9;
 }
 
-.mobile-menu-button {
-  display: none;
-}
-
-.mobile-menu-close {
-  display: none;
-}
-
 @media (max-width: 700px) {
   .app {
     display: block;
     min-height: 100vh;
-  }
-
-  .mobile-menu-button {
-    display: flex;
-    position: fixed;
-    top: 16px;
-    left: 16px;
-    z-index: 2000;
-
-    width: 44px;
-    height: 44px;
-
-    align-items: center;
-    justify-content: center;
-
-    border: none;
-    border-radius: 12px;
-
-    background: #ffffff;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
-
-    font-size: 22px;
-    cursor: pointer;
+    padding-bottom: 72px;
   }
 
   .sidebar {
     position: fixed;
-    top: 0;
-    left: -280px;
-
-    width: 245px;
-    height: 100vh;
-    min-height: 100vh;
-
-    z-index: 1999;
-
-    transition: left 0.25s ease;
-  }
-
-  .sidebar.mobile-open {
+    bottom: 0;
     left: 0;
+    top: auto;
+
+    width: 100%;
+    height: 64px;
+    min-height: 64px;
+
+    padding: 6px 8px;
+
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+
+    border-right: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
   }
 
-  .mobile-menu-close {
+  .sidebar .logo,
+  .sidebar-bottom {
+    display: none;
+  }
+
+  .sidebar nav {
+    width: 100%;
+    height: 100%;
+
     display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: space-around;
 
-    position: absolute;
-    top: 18px;
-    right: 16px;
+    gap: 0;
+  }
 
-    width: 36px;
-    height: 36px;
+  .sidebar .nav-item {
+    flex: 1;
+    min-width: 0;
 
+    padding: 4px 2px;
+
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
 
+    gap: 2px;
+
+    background: transparent;
     border: none;
-    border-radius: 50%;
 
-    background: rgba(255, 255, 255, 0.1);
-    color: #ffffff;
+    font-size: 9px;
+    line-height: 1.1;
 
-    font-size: 24px;
-    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .sidebar .nav-item span {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1;
   }
 }
