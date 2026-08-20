@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "https://invoice-creator-l0ex.onrender.com";
 
 
 const getGreeting = () => {
@@ -47,6 +50,14 @@ function App() {
   const [settingsModal, setSettingsModal] = useState<
   "terms" | "privacy" | null
 >(null);
+
+const [isPaywallOpen, setIsPaywallOpen] = useState(false);
+const [subscriptionEmail, setSubscriptionEmail] = useState("");
+const [billingCycle, setBillingCycle] = useState<
+  "monthly" | "yearly"
+>("monthly");
+const [isStartingPayment, setIsStartingPayment] = useState(false);
+const [paymentMessage, setPaymentMessage] = useState("");
   
   const [isListening, setIsListening] = useState(false);
   const [prompt, setPrompt] = useState("");
@@ -56,6 +67,8 @@ function App() {
   const saved = localStorage.getItem("businessName");
   return saved || "";
 });
+
+
 
 const [businessPhone, setBusinessPhone] = useState(() => {
   const saved = localStorage.getItem("businessPhone");
@@ -102,6 +115,8 @@ const [invoiceHistory, setInvoiceHistory] = useState<SavedInvoice[]>(() => {
   businessLogo,
   signature,
 ]);
+
+
   const [template, setTemplate] =
     useState<Template>("aurora");
 
@@ -128,6 +143,85 @@ const [invoiceHistory, setInvoiceHistory] = useState<SavedInvoice[]>(() => {
     new Date().toISOString().split("T")[0]
   );
 
+  useEffect(() => {
+  const savedDraft = sessionStorage.getItem(
+    "pendingInvoiceDraft"
+  );
+
+ if (savedDraft) {
+  try {
+    const draft = JSON.parse(savedDraft);
+
+    setTimeout(() => {
+      setClientName(draft.clientName || "");
+      setInvoiceItems(draft.invoiceItems || []);
+      setPaymentDetails(draft.paymentDetails || "");
+      setAdditionalInfo(draft.additionalInfo || "");
+      setInvoiceNumber(draft.invoiceNumber || "INV-001");
+      setInvoiceDate(draft.invoiceDate || "");
+      setTemplate(draft.template || "aurora");
+      setPage("editor");
+    }, 0);
+
+    sessionStorage.removeItem("pendingInvoiceDraft");
+  } catch {
+    sessionStorage.removeItem("pendingInvoiceDraft");
+  }
+}
+
+  const reference = new URLSearchParams(
+    window.location.search
+  ).get("reference");
+
+  if (!reference) {
+    return;
+  }
+
+  const verifyPayment = async () => {
+    try {
+      const response = await fetch(
+        `${API_URL}/api/payments/verify`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ reference }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setPaymentMessage(
+          "Payment verified. Your PDF downloads are now unlocked."
+        );
+      } else {
+        setPaymentMessage(
+          data.error || "We could not verify your payment."
+        );
+      }
+
+      setIsPaywallOpen(true);
+    } catch {
+      setPaymentMessage(
+        "We could not verify your payment. Please try again."
+      );
+      setIsPaywallOpen(true);
+    } finally {
+      window.history.replaceState(
+        {},
+        "",
+        window.location.pathname
+      );
+    }
+  };
+
+  verifyPayment();
+}, []);
+
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-NG", {
       style: "currency",
@@ -150,9 +244,10 @@ const [invoiceHistory, setInvoiceHistory] = useState<SavedInvoice[]>(() => {
     setError("");
 
     const response = await fetch(
-      "https://invoice-creator-l0ex.onrender.com/api/generate-invoice",
+      `${API_URL}/api/generate-invoice`,
       {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -332,6 +427,85 @@ const canvas = await html2canvas(invoice, {
     console.error("PDF generation failed:", error);
   }
 };
+
+const requestPDFDownload = async () => {
+  try {
+    const response = await fetch(
+      `${API_URL}/api/subscription/status`,
+      {
+        credentials: "include",
+      }
+    );
+
+    const data = await response.json();
+
+    if (response.ok && data.active) {
+      await downloadPDF();
+      return;
+    }
+
+    setPaymentMessage("");
+    setIsPaywallOpen(true);
+  } catch {
+    setPaymentMessage(
+      "We could not check your subscription. Please try again."
+    );
+    setIsPaywallOpen(true);
+  }
+};
+
+const startSubscription = async () => {
+  try {
+    setIsStartingPayment(true);
+    setPaymentMessage("");
+
+    sessionStorage.setItem(
+      "pendingInvoiceDraft",
+      JSON.stringify({
+        clientName,
+        invoiceItems,
+        paymentDetails,
+        additionalInfo,
+        invoiceNumber,
+        invoiceDate,
+        template,
+      })
+    );
+
+    const response = await fetch(
+      `${API_URL}/api/payments/initialize`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: subscriptionEmail,
+          billingCycle,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error || "Could not start payment."
+      );
+    }
+
+    window.location.assign(data.authorizationUrl);
+  } catch (error) {
+    setPaymentMessage(
+      error instanceof Error
+        ? error.message
+        : "Could not start payment."
+    );
+  } finally {
+    setIsStartingPayment(false);
+  }
+};
   
   const saveInvoice = () => {
   const savedInvoice = {
@@ -413,6 +587,113 @@ const deleteInvoice = (index: number) => {
   if (page === "editor") {
     return (
       <div className="editor-page">
+      {isPaywallOpen && (
+  <div
+    className="paywall-overlay"
+    onClick={() => setIsPaywallOpen(false)}
+  >
+    <div
+      className="paywall-modal"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <button
+        type="button"
+        className="settings-modal-close"
+        onClick={() => setIsPaywallOpen(false)}
+      >
+        ×
+      </button>
+
+      {paymentMessage.startsWith("Payment verified") ? (
+        <>
+          <span className="ai-badge">PAYMENT CONFIRMED</span>
+          <h2>PDF downloads unlocked</h2>
+          <p>{paymentMessage}</p>
+
+          <button
+            type="button"
+            className="generate-button paywall-submit"
+            onClick={() => setIsPaywallOpen(false)}
+          >
+            Back to invoice
+          </button>
+        </>
+      ) : (
+        <>
+          <span className="ai-badge">PDF DOWNLOADS</span>
+          <h2>Unlock PDF downloads</h2>
+
+          <p>
+            Choose a plan to download your professional
+            invoices as PDFs.
+          </p>
+
+          <div className="billing-options">
+            <button
+              type="button"
+              className={
+                billingCycle === "monthly"
+                  ? "billing-option selected"
+                  : "billing-option"
+              }
+              onClick={() => setBillingCycle("monthly")}
+            >
+              <strong>₦5,000</strong>
+              <span>Monthly</span>
+            </button>
+
+            <button
+              type="button"
+              className={
+                billingCycle === "yearly"
+                  ? "billing-option selected"
+                  : "billing-option"
+              }
+              onClick={() => setBillingCycle("yearly")}
+            >
+              <strong>₦50,000</strong>
+              <span>Yearly · save ₦10,000</span>
+            </button>
+          </div>
+
+          <label
+            className="paywall-label"
+            htmlFor="subscription-email"
+          >
+            Email address
+          </label>
+
+          <input
+            id="subscription-email"
+            type="email"
+            value={subscriptionEmail}
+            onChange={(event) =>
+              setSubscriptionEmail(event.target.value)
+            }
+            placeholder="you@example.com"
+          />
+
+          {paymentMessage && (
+            <p className="creator-error">
+              {paymentMessage}
+            </p>
+          )}
+
+          <button
+            type="button"
+            className="generate-button paywall-submit"
+            onClick={startSubscription}
+            disabled={isStartingPayment}
+          >
+            {isStartingPayment
+              ? "Opening Paystack…"
+              : "Continue to payment"}
+          </button>
+        </>
+      )}
+    </div>
+  </div>
+)}
         <header className="editor-topbar">
           <button
             className="back-button"
@@ -428,7 +709,7 @@ const deleteInvoice = (index: number) => {
 
             <button
               className="generate-button"
-              onClick={downloadPDF} 
+              onClick={requestPDFDownload}
             >   
               Download PDF
             </button>
@@ -730,33 +1011,36 @@ const deleteInvoice = (index: number) => {
     <div className="paper-items">
 
       <div className="paper-item paper-item-header">
-        <span>Description</span>
-        <span>Amount</span>
-      </div>
+  <span>Description</span>
+  <span>Quantity</span>
+  <span>Price</span>
+  <span>Amount</span>
+</div>
 
       {invoiceItems.map((item, index) => (
 
         <div
-          className="paper-item"
-          key={index}
-        >
+  className="paper-item"
+  key={index}
+>
+  <span>
+    {item.description}
+  </span>
 
-          <span>
-            {item.description}
+  <span>
+    {item.quantity}
+  </span>
 
-            <small>
-              {item.quantity} ×{" "}
-              {formatCurrency(item.price)}
-            </small>
-          </span>
+  <span>
+    {formatCurrency(item.price)}
+  </span>
 
-          <strong>
-            {formatCurrency(
-              item.quantity * item.price
-            )}
-          </strong>
-
-        </div>
+  <strong>
+    {formatCurrency(
+      item.quantity * item.price
+    )}
+  </strong>
+</div>
 
       ))}
 
@@ -1467,27 +1751,56 @@ const deleteInvoice = (index: number) => {
               <p>Your latest created invoices</p>
             </div>
 
-            <button className="view-all">
-              View all →
-            </button>
-          </div>
-
-          <div className="empty-state">
-            <div className="empty-icon">▤</div>
-
-            <h3>No invoices yet</h3>
-
-            <p>
-              Your created invoices will appear here.
-            </p>
-
             <button
-              className="empty-button"
-              onClick={() => setPage("creator")}
-            >
-              Create your first invoice
-            </button>
+  className="view-all"
+  onClick={() => setPage("invoice-history")}
+>
+  View all →
+</button>
           </div>
+
+         {invoiceHistory.length === 0 ? (
+  <div className="empty-state">
+    <div className="empty-icon">▤</div>
+
+    <h3>No invoices yet</h3>
+
+    <p>
+      Your created invoices will appear here.
+    </p>
+
+    <button
+      className="empty-button"
+      onClick={() => setPage("creator")}
+    >
+      Create your first invoice
+    </button>
+  </div>
+) : (
+  <div className="recent-invoices-list">
+    {invoiceHistory
+      .slice(-5)
+      .reverse()
+      .map((invoice, index) => (
+        <div
+          className="recent-invoice-row"
+          key={`${invoice.invoiceNumber}-${index}`}
+        >
+          <div>
+            <strong>{invoice.invoiceNumber}</strong>
+            <span>{invoice.clientName}</span>
+          </div>
+
+          <div>
+            <span>{invoice.invoiceDate}</span>
+            <strong>
+              {formatCurrency(invoice.total)}
+            </strong>
+          </div>
+        </div>
+      ))}
+  </div>
+)}
         </section>
       </main>
     </div>

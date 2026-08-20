@@ -1420,17 +1420,34 @@ nav {
 }
 
 .paper-item {
-  display: flex;
-
-  justify-content: space-between;
-
-  align-items: flex-start;
-
+  display: grid;
+  grid-template-columns: 1fr 70px 100px 110px;
+  gap: 12px;
+  align-items: start;
   padding: 13px 0;
-
   border-bottom: 1px solid #eee;
-
   font-size: 10px;
+}
+
+.paper-item > span:nth-child(2),
+.paper-item > span:nth-child(3),
+.paper-item > strong {
+  text-align: right;
+}
+
+.paper-item-header {
+  display: grid;
+  grid-template-columns: 1fr 70px 100px 110px;
+  gap: 12px;
+  align-items: center;
+  font-weight: 600;
+  border-bottom: 2px solid #ddd;
+}
+
+.paper-item-header span:nth-child(2),
+.paper-item-header span:nth-child(3),
+.paper-item-header span:nth-child(4) {
+  text-align: right;
 }
 
 .paper-item > span {
@@ -3017,5 +3034,215 @@ nav {
   html::-webkit-scrollbar,
   body::-webkit-scrollbar {
     display: none;
+  }
+}
+
+.paywall-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+}
+
+.paywall-modal {
+  position: relative;
+  width: min(100%, 430px);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 28px;
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  border-radius: 24px;
+  background: #111114;
+  color: #fff;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+.paywall-modal h2 {
+  margin: 14px 0 8px;
+  font-size: 28px;
+  line-height: 1.15;
+}
+
+.paywall-modal p {
+  color: #a1a1aa;
+  line-height: 1.6;
+}
+
+.paywall-modal input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 8px;
+  padding: 14px 16px;
+  border: 1px solid #2a2a31;
+  border-radius: 12px;
+  outline: none;
+  background: #19191f;
+  color: #fff;
+  font-size: 15px;
+}
+
+.paywall-modal input:focus {
+  border-color: #8b5cf6;
+}
+
+.paywall-label {
+  display: block;
+  margin-top: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #d4d4d8;
+}
+
+.billing-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.billing-option {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 16px;
+  border: 1px solid #2a2a31;
+  border-radius: 16px;
+  background: #19191f;
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+}
+
+.billing-option strong {
+  font-size: 20px;
+}
+
+.billing-option span {
+  color: #a1a1aa;
+  font-size: 13px;
+}
+
+.billing-option.selected {
+  border-color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.12);
+  box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.25);
+}
+
+.settings-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: #202027;
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.paywall-submit {
+  width: 100%;
+  margin-top: 22px;
+}
+
+.ai-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(139, 92, 246, 0.14);
+  color: #a78bfa;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 520px) {
+  .paywall-overlay {
+    align-items: flex-end;
+    padding: 12px;
+  }
+
+  .paywall-modal {
+    width: 100%;
+    max-height: 85vh;
+    padding: 22px;
+    border-radius: 22px;
+  }
+
+  .billing-options {
+    grid-template-columns: 1fr;
+  }
+
+  .paywall-modal h2 {
+    font-size: 24px;
+  }
+}
+
+.recent-invoices-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.recent-invoice-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 18px;
+  border: 1px solid #ececf1;
+  border-radius: 14px;
+  background: #fff;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.recent-invoice-row:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.recent-invoice-row > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.recent-invoice-row > div:last-child {
+  align-items: flex-end;
+}
+
+.recent-invoice-row strong {
+  color: #17171c;
+  font-size: 14px;
+}
+
+.recent-invoice-row span {
+  color: #777780;
+  font-size: 12px;
+}
+
+@media (max-width: 600px) {
+  .recent-invoice-row {
+    padding: 14px;
+  }
+
+  .recent-invoice-row strong {
+    font-size: 13px;
+  }
+
+  .recent-invoice-row span {
+    font-size: 11px;
   }
 }
