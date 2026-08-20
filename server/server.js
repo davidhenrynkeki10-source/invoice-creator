@@ -13,6 +13,9 @@ const allowedOrigins = [
   "http://localhost:5173",
 ].filter(Boolean);
 
+console.log("CLIENT_URL:", process.env.CLIENT_URL);
+console.log("ALLOWED ORIGINS:", allowedOrigins);
+
 app.use(
   cors({
     origin(origin, callback) {
