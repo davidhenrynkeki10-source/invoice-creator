@@ -20,7 +20,8 @@ app.use(
         return callback(null, true);
       }
 
-      return callback(new Error("Origin not allowed by CORS"));
+      console.error("CORS REJECTED ORIGIN:", origin);
+return callback(new Error("Origin not allowed by CORS"));
     },
     credentials: true,
   })
