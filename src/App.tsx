@@ -33,6 +33,7 @@ type SavedInvoice = {
   invoiceDate: string;
   items: InvoiceItem[];
   total: number;
+  status?: "paid" | "unpaid";
 };
 
 type Template = 
@@ -44,18 +45,28 @@ type Template =
 
 function App() {
   const [page, setPage] = useState<
-    "dashboard" | "creator" | "editor" | "business-profile" | "invoice-history" | "settings"
+    "dashboard" | "creator" | "editor" | "business-profile" | "invoice-history" | "revenue-history"| "settings"
   >("dashboard");
 
   const [settingsModal, setSettingsModal] = useState<
   "terms" | "privacy" | null
 >(null);
 
+const [showSaveSuccess, setShowSaveSuccess] = useState(false);
 const [isPaywallOpen, setIsPaywallOpen] = useState(false);
 const [subscriptionEmail, setSubscriptionEmail] = useState("");
 const [billingCycle, setBillingCycle] = useState<
   "monthly" | "yearly"
 >("monthly");
+
+const [revenueMonth, setRevenueMonth] = useState(() => {
+  const now = new Date();
+
+  return `${now.getFullYear()}-${String(
+    now.getMonth() + 1
+  ).padStart(2, "0")}`;
+});
+
 const [isStartingPayment, setIsStartingPayment] = useState(false);
 const [paymentMessage, setPaymentMessage] = useState("");
   
@@ -97,7 +108,25 @@ const [signature, setSignature] = useState(() => {
 
 const [invoiceHistory, setInvoiceHistory] = useState<SavedInvoice[]>(() => {
   const saved = localStorage.getItem("invoiceHistory");
-  return saved ? JSON.parse(saved) : [];
+
+  if (!saved) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(saved);
+
+    return parsed.map((invoice: SavedInvoice): SavedInvoice => ({
+  invoiceNumber: invoice.invoiceNumber,
+  clientName: invoice.clientName,
+  invoiceDate: invoice.invoiceDate,
+  items: invoice.items,
+  total: invoice.total,
+  status: invoice.status === "paid" ? "paid" : "unpaid",
+}));
+  } catch {
+    return [];
+  }
 });
  
   useEffect(() => {
@@ -508,7 +537,7 @@ const startSubscription = async () => {
 };
   
   const saveInvoice = () => {
-  const savedInvoice = {
+  const savedInvoice: SavedInvoice = {
     invoiceNumber: invoiceNumber || "INV-001",
     clientName,
     invoiceDate,
@@ -518,14 +547,42 @@ const startSubscription = async () => {
         sum + item.quantity * item.price,
       0
     ),
+    status: "unpaid",
   };
+
+ 
 
   
 
-  const updatedHistory = [
-    ...invoiceHistory,
-    savedInvoice,
-  ];
+  const updatedHistory: SavedInvoice[] = [
+  ...invoiceHistory,
+  savedInvoice,
+];
+
+  setInvoiceHistory(updatedHistory);
+   setShowSaveSuccess(true);
+
+setTimeout(() => {
+  setShowSaveSuccess(false);
+}, 2500);
+
+  localStorage.setItem(
+    "invoiceHistory",
+    JSON.stringify(updatedHistory)
+  );
+
+ 
+
+};
+const updateInvoiceStatus = (
+  invoiceNumber: string,
+  status: "paid" | "unpaid"
+) => {
+  const updatedHistory = invoiceHistory.map((invoice) =>
+    invoice.invoiceNumber === invoiceNumber
+      ? { ...invoice, status }
+      : invoice
+  );
 
   setInvoiceHistory(updatedHistory);
 
@@ -534,7 +591,134 @@ const startSubscription = async () => {
     JSON.stringify(updatedHistory)
   );
 };
+const getMonthlyRevenue = () => {
+  return invoiceHistory
+    .filter((invoice) => {
+      if (invoice.status !== "paid") {
+        return false;
+      }
 
+      return invoice.invoiceDate.startsWith(
+        revenueMonth
+      );
+    })
+    .reduce(
+      (total, invoice) => total + invoice.total,
+      0
+    );
+};
+
+const getMonthlyPaidCount = () => {
+  return invoiceHistory.filter((invoice) => {
+    if (invoice.status !== "paid") {
+      return false;
+    }
+
+    return invoice.invoiceDate.startsWith(
+      revenueMonth
+    );
+  }).length;
+};
+
+const getMonthlyOutstanding = () => {
+  return invoiceHistory
+    .filter((invoice) => {
+      if (invoice.status !== "unpaid") {
+        return false;
+      }
+
+      return invoice.invoiceDate.startsWith(
+        revenueMonth
+      );
+    })
+    .reduce(
+      (total, invoice) => total + invoice.total,
+      0
+    );
+};
+
+const getRevenueHistory = () => {
+  const months = Array.from(
+    new Set(
+      invoiceHistory.map((invoice) =>
+        invoice.invoiceDate.slice(0, 7)
+      )
+    )
+  )
+    .sort()
+    .reverse();
+
+  return months.map((month) => {
+    const paidInvoices = invoiceHistory.filter(
+      (invoice) =>
+        invoice.status === "paid" &&
+        invoice.invoiceDate.startsWith(month)
+    );
+
+    const revenue = paidInvoices.reduce(
+      (total, invoice) => total + invoice.total,
+      0
+    );
+
+    return {
+      month,
+      paidCount: paidInvoices.length,
+      revenue,
+    };
+  });
+};
+
+const getRevenueChange = () => {
+  const currentRevenue = invoiceHistory
+    .filter(
+      (invoice) =>
+        invoice.status === "paid" &&
+        invoice.invoiceDate.startsWith(revenueMonth)
+    )
+    .reduce(
+      (total, invoice) => total + invoice.total,
+      0
+    );
+
+  const [year, month] = revenueMonth
+    .split("-")
+    .map(Number);
+
+  const previousDate = new Date(
+    year,
+    month - 2,
+    1
+  );
+
+  const previousMonth = `${previousDate.getFullYear()}-${String(
+    previousDate.getMonth() + 1
+  ).padStart(2, "0")}`;
+
+  const previousRevenue = invoiceHistory
+    .filter(
+      (invoice) =>
+        invoice.status === "paid" &&
+        invoice.invoiceDate.startsWith(previousMonth)
+    )
+    .reduce(
+      (total, invoice) => total + invoice.total,
+      0
+    );
+
+  if (previousRevenue === 0) {
+    if (currentRevenue > 0) {
+      return 100;
+    }
+
+    return null;
+  }
+
+  return (
+    ((currentRevenue - previousRevenue) /
+      previousRevenue) *
+    100
+  );
+};
 const deleteInvoice = (index: number) => {
   const updatedHistory = invoiceHistory.filter(
     (_, i) => i !== index
@@ -722,6 +906,12 @@ const deleteInvoice = (index: number) => {
               <span>+</span>
                Save Invoice
             </button>
+
+            {showSaveSuccess && (
+  <div className="save-success-popup">
+    🎉 Invoice saved successfully!
+  </div>
+)}
           </div>
         </header>
 
@@ -1099,6 +1289,82 @@ const deleteInvoice = (index: number) => {
       </div>
     );
   }
+
+  if (page === "revenue-history") {
+  return (
+    <div className="invoice-history-page">
+      <button
+        className="back-button"
+        onClick={() => setPage("dashboard")}
+      >
+        ← Back to Dashboard
+      </button>
+
+      <div className="invoice-history-container">
+        <div className="invoice-history-header">
+          <div>
+            <span className="section-label">
+              REVENUE
+            </span>
+
+            <h1>Revenue History</h1>
+
+            <p>
+              View your complete revenue history from
+              paid invoices.
+            </p>
+          </div>
+        </div>
+
+        <div className="revenue-history-list">
+          {getRevenueHistory().length === 0 ? (
+            <div className="revenue-history-empty">
+              <p>No revenue history yet.</p>
+            </div>
+          ) : (
+            getRevenueHistory().map((entry) => {
+              const [year, monthNumber] =
+                entry.month.split("-");
+
+              const monthLabel = new Date(
+                Number(year),
+                Number(monthNumber) - 1
+              ).toLocaleDateString("en-US", {
+                month: "long",
+                year: "numeric",
+              });
+
+              return (
+                <div
+                  className="revenue-history-row"
+                  key={entry.month}
+                >
+                  <div>
+                    <strong>
+                      {monthLabel}
+                    </strong>
+
+                    <span>
+                      {entry.paidCount} paid invoice
+                      {entry.paidCount !== 1
+                        ? "s"
+                        : ""}
+                    </span>
+                  </div>
+
+                  <strong>
+                    {formatCurrency(entry.revenue)}
+                  </strong>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
   if (page === "invoice-history") {
   return (
     <div className="invoice-history-page">
@@ -1165,6 +1431,32 @@ const deleteInvoice = (index: number) => {
               <span>Date</span>
               <p>{invoice.invoiceDate}</p>
             </div>
+            <div>
+  <span>Status</span>
+
+  <button
+    type="button"
+    className={
+      invoice.status === "paid"
+        ? "invoice-status paid"
+        : "invoice-status unpaid"
+    }
+    onClick={(e) => {
+      e.stopPropagation();
+
+      updateInvoiceStatus(
+        invoice.invoiceNumber,
+        invoice.status === "paid"
+          ? "unpaid"
+          : "paid"
+      );
+    }}
+  >
+    {invoice.status === "paid"
+      ? "Paid"
+      : "Unpaid"}
+  </button>
+</div>
 
             <div className="invoice-history-actions">
   <span className="invoice-history-arrow">
@@ -1596,6 +1888,7 @@ const deleteInvoice = (index: number) => {
 
   return (
     <div className="app">
+     
       
        <aside
   className="sidebar"> 
@@ -1742,9 +2035,180 @@ const deleteInvoice = (index: number) => {
               <strong>₦450,000</strong>
             </div>
           </div>
-        </section>
+                </section>
 
-        <section className="recent-section">
+    <section className="revenue-section">
+  <div className="revenue-card">
+    <div>
+      <span className="section-label">
+        MONTHLY REVENUE
+      </span>
+
+      <select
+        className="revenue-month-selector"
+        value={revenueMonth}
+        onChange={(e) =>
+          setRevenueMonth(e.target.value)
+        }
+      >
+        {Array.from(
+          new Set(
+            invoiceHistory.map((invoice) =>
+              invoice.invoiceDate.slice(0, 7)
+            )
+          )
+        )
+          .sort()
+          .reverse()
+          .map((month) => {
+            const [year, monthNumber] =
+              month.split("-");
+
+            const label = new Date(
+              Number(year),
+              Number(monthNumber) - 1
+            ).toLocaleDateString("en-US", {
+              month: "long",
+              year: "numeric",
+            });
+
+            return (
+              <option
+                key={month}
+                value={month}
+              >
+                {label}
+              </option>
+            );
+          })}
+      </select>
+
+    <h2>
+  {formatCurrency(getMonthlyRevenue())}
+</h2>
+
+{(() => {
+  const revenueChange = getRevenueChange();
+
+  if (revenueChange === null) {
+    return null;
+  }
+
+  return (
+    <div
+      className={`revenue-change ${
+        revenueChange >= 0
+          ? "positive"
+          : "negative"
+      }`}
+    >
+      {revenueChange >= 0 ? "↑" : "↓"}{" "}
+      {Math.abs(revenueChange).toFixed(1)}%
+      {" "}vs previous month
+    </div>
+  );
+})()}
+
+<p>
+  Revenue from paid invoices
+</p>
+    </div>
+
+    <div className="revenue-icon">
+      ₦
+    </div>
+  </div>
+
+  <div className="revenue-stats">
+    <div className="revenue-stat-card">
+      <span>Paid Invoices</span>
+
+      <strong>
+        {getMonthlyPaidCount()}
+      </strong>
+
+      <p>
+        Paid this month
+      </p>
+    </div>
+
+    <div className="revenue-stat-card">
+      <span>Outstanding</span>
+
+      <strong>
+        {formatCurrency(getMonthlyOutstanding())}
+      </strong>
+
+      <p>
+        Unpaid this month
+      </p>
+    </div>
+  </div>
+</section>
+
+<section className="revenue-history-section">
+  <div className="section-heading">
+    <div>
+      <h3>Revenue History</h3>
+      <p>Your latest revenue from paid invoices</p>
+    </div>
+
+    {getRevenueHistory().length > 5 && (
+      <button
+        className="view-all"
+        onClick={() => setPage("revenue-history")}
+      >
+        View all →
+      </button>
+    )}
+  </div>
+
+  <div className="revenue-history-list">
+    {getRevenueHistory().length === 0 ? (
+      <div className="revenue-history-empty">
+        <p>No revenue history yet.</p>
+      </div>
+    ) : (
+      getRevenueHistory()
+        .slice(0, 5)
+        .map((entry) => {
+          const [year, monthNumber] =
+            entry.month.split("-");
+
+          const monthLabel = new Date(
+            Number(year),
+            Number(monthNumber) - 1
+          ).toLocaleDateString("en-US", {
+            month: "long",
+            year: "numeric",
+          });
+
+          return (
+            <div
+              className="revenue-history-row"
+              key={entry.month}
+            >
+              <div>
+                <strong>{monthLabel}</strong>
+                <span>
+                  {entry.paidCount} paid invoice
+                  {entry.paidCount !== 1
+                    ? "s"
+                    : ""}
+                </span>
+              </div>
+
+              <strong>
+                {formatCurrency(entry.revenue)}
+              </strong>
+            </div>
+          );
+        })
+    )}
+  </div>
+</section>
+
+<section className="recent-section">
           <div className="section-heading">
             <div>
               <h3>Recent invoices</h3>

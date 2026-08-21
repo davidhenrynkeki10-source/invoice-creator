@@ -3167,7 +3167,7 @@ nav {
 
 @media (max-width: 520px) {
   .paywall-overlay {
-    align-items: flex-end;
+    align-items: center;
     padding: 12px;
   }
 
@@ -3244,5 +3244,383 @@ nav {
 
   .recent-invoice-row span {
     font-size: 11px;
+  }
+  .revenue-stats {
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.revenue-stat-card {
+  padding: 17px;
+}
+
+.revenue-stat-card strong {
+  font-size: 21px;
+}
+
+.save-success-popup {
+  top: 16px;
+  width: calc(100% - 32px);
+  text-align: center;
+  font-size: 13px;
+}
+
+}
+
+.revenue-section {
+  margin: 24px 0;
+}
+
+.revenue-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px;
+  border-radius: 18px;
+  background: #17121f;
+  color: #fff;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
+
+.revenue-card .section-label {
+  color: #b9a7ff;
+  font-size: 11px;
+  letter-spacing: 1.2px;
+}
+
+.revenue-card h2 {
+  margin: 8px 0 4px;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.revenue-card p {
+  margin: 0;
+  color: #b9b3c5;
+  font-size: 13px;
+}
+
+.revenue-icon {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: #8b5cf6;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.revenue-month-selector {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+
+.revenue-month-selector option {
+  color: #17121f;
+  background: #fff;
+}
+
+.revenue-month-selector:focus {
+  border-color: #8b5cf6;
+}
+
+.revenue-change {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.revenue-change.positive {
+  color: #218739;
+}
+
+.revenue-change.negative {
+  color: #c53d3d;
+}
+
+@media (max-width: 600px) {
+  .revenue-card {
+    padding: 20px;
+  }
+
+  .revenue-card h2 {
+    font-size: 25px;
+  }
+
+  .revenue-icon {
+    width: 46px;
+    height: 46px;
+    font-size: 21px;
+  }
+  .revenue-month-selector {
+  width: 100%;
+  max-width: 190px;
+  font-size: 11px;
+}
+.revenue-history-row {
+  padding: 16px;
+  gap: 12px;
+}
+
+.revenue-history-row strong {
+  font-size: 13px;
+}
+
+.revenue-history-row > strong {
+  font-size: 13px;
+}
+
+.revenue-history-row span {
+  font-size: 11px;
+}
+.revenue-change {
+  font-size: 11px;
+}
+.revenue-history-section .section-heading {
+  align-items: flex-start;
+}
+
+.revenue-history-section .view-all {
+  font-size: 12px;
+}
+
+.invoice-history-page .revenue-history-row {
+  padding: 16px;
+}
+
+.invoice-history-page .revenue-history-row strong {
+  font-size: 13px;
+}
+
+.invoice-history-page .revenue-history-row > div strong {
+  font-size: 13px;
+}
+
+.revenue-history-row > div strong {
+  font-size: 13px;
+}
+
+.save-success-popup {
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  width: auto;
+  transform: none;
+  text-align: center;
+  padding: 13px 16px;
+  font-size: 13px;
+}
+
+}
+
+.revenue-history-section {
+  margin: 24px 0;
+}
+
+.revenue-history-list {
+  margin-top: 16px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.revenue-history-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 22px;
+  border-bottom: 1px solid #eee;
+}
+
+.revenue-history-row:last-child {
+  border-bottom: none;
+}
+
+.revenue-history-row > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.revenue-history-row strong {
+  font-size: 14px;
+}
+
+.revenue-history-row span {
+  color: #888;
+  font-size: 12px;
+}
+
+.revenue-history-row > strong {
+  color: #17121f;
+  font-size: 15px;
+}
+
+.revenue-history-empty {
+  padding: 30px 20px;
+  text-align: center;
+  color: #888;
+  font-size: 13px;
+}
+
+.revenue-history-section .section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.revenue-history-section .view-all {
+  white-space: nowrap;
+}
+
+.invoice-history-page .revenue-history-list {
+  margin-top: 24px;
+}
+
+.invoice-history-page .revenue-history-row {
+  padding: 20px 24px;
+}
+
+.invoice-history-page .revenue-history-row strong {
+  font-size: 15px;
+}
+
+.invoice-history-page .revenue-history-row > div strong {
+  font-size: 15px;
+}
+
+.invoice-history-page .revenue-history-row span {
+  margin-top: 4px;
+}
+
+
+.invoice-status {
+  border: none;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.invoice-status.paid {
+  background: #e9f8ef;
+  color: #218739;
+}
+
+.invoice-status.unpaid {
+  background: #fff3e6;
+  color: #c56a16;
+}
+
+.invoice-status:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+@media (max-width: 600px) {
+  .invoice-status {
+    padding: 6px 10px;
+    font-size: 10px;
+    min-width: 62px;
+  }
+}
+.revenue-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.revenue-stat-card {
+  padding: 20px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #eee;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+.revenue-stat-card > span {
+  display: block;
+  color: #777;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.revenue-stat-card strong {
+  display: block;
+  margin-top: 8px;
+  color: #17121f;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.revenue-stat-card p {
+  margin: 5px 0 0;
+  color: #999;
+  font-size: 12px;
+}
+
+.revenue-history-row > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.revenue-history-row > div strong {
+  display: block;
+  font-size: 15px;
+  color: #17121f;
+}
+
+.revenue-history-row > div span {
+  display: block;
+  font-size: 12px;
+  color: #888;
+}
+
+.save-success-popup {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999999;
+  background: #17121f;
+  color: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+@keyframes savePopupIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
   }
 }
